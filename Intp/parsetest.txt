@@ -1,0 +1,1158 @@
+1. resolve dependencies
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          :
+    |object
+    |void
+    |null
+    :
+
+    |tokens
+    |----------
+    |public class A
+    |{
+    |    public float function(int a, float b){
+    |        return a + b;
+    |    }
+    |
+    |    public void Func2(int a){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |int main(void){
+    |   A a;
+    |		int i = 0;
+    |		float f = 3.1415*i;
+    |	if(f <= 7){
+    |		a.function(i++,f);
+    |	}
+    |	else if(f >= i << 3 + 1)
+    |	{
+    |		a.Fun2(3);
+    |	}
+    |}
+    :
+2. find pattern:"classDef"; construct classDef typeNameList
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          :
+    |void
+    |object
+    |A
+    :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public float function(int a, float b){
+    |        return a + b;
+    |    }
+    |
+    |    public void Func2(int a){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |int main(){
+    |   A a;
+    |		int i = 0;
+    |		float f = 3.1415*i;
+    |	if(f <= 7){
+    |		a.function(i++,f);
+    |	}
+    |	else if(f >= i << 3 + 1)
+    |	{
+    |		a.Fun2(3);
+    |	}
+    |}
+    :
+3. replace identifiers with typenames
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          :
+    |void
+    |object
+    |A
+    :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public {typeName|float} function({typeName|int} a, {typeName|float} b){
+    |        return a + b;
+    |    }
+    |
+    |    public {typeName|void} Func2({typeName|int} a){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |{typeName|int} main(){
+    |   {typeName|A} a;
+    |		{typeName|int} i = 0;
+    |		{typeName|float} f = 3.1415*i;
+    |	if(f <= 7){
+    |		a.function(i++,f);
+    |	}
+    |	else if(f >= i << 3 + 1)
+    |	{
+    |		a.Fun2(3);
+    |	}
+    |}
+    :
+4. find pattern:"typename"
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          :
+    |void
+    |object
+    |A
+    :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public {typeName|float} function({typeName|int} a, {typeName|float} b){
+    |        return a + b;
+    |    }
+    |
+    |    public {typeName|void} Func2({typeName|int} a){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |{typeName|int} main(){
+    |   {typeName|A} a;
+    |		{typeName|int} i = 0;
+    |		{typeName|float} f = 3.1415*i;
+    |	if(f <= 7){
+    |		a.function(i++,f);
+    |	}
+    |	else if(f >= i << 3 + 1)
+    |	{
+    |		a.Fun2(3);
+    |	}
+    |}
+    :
+5. find pattern:"varDecl"; construct varNameList
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    :               :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public {typeName|float} function(  {varDecl|{typeName|int} a},
+    |                                       {varDecl|{typeName|float} b}
+    |    ){
+    |        return a + b;
+    |    }
+    |
+    |    public {typeName|void} Func2({varDecl|{typeName|int} a}){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |{typeName|int} main(){
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit|{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit|{varDecl|{typeName|float} f} =} 3.1415*i;
+    |	if(f <= 7){
+    |		a.function(i++,f);
+    |	}
+    |	else if(f >= i << 3 + 1)
+    |	{
+    |		a.Fun2(3);
+    |	}
+    |}
+    :
+6. replace identifiers with varAccess
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    :               :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public {typeName|float} function(  {varDecl|{typeName|int} a},
+    |                                       {varDecl|{typeName|float} b}
+    |    ){
+    |        return {varAccess|a} + {varAccess|b};
+    |    }
+    |
+    |    public {typeName|void} Func2({varDecl|{typeName|int} a}){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |{typeName|int} main(){
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit{varDecl{typeName|float} f} =} 3.1415*i;
+    |	if({varAccess|f} <= 7){
+    |		{varAccess|a}.function({varAccess|i}++,{varAccess|f});
+    |	}
+    |	else if({varAccess|f} >= {varAccess|i} << 3 + 1)
+    |	{
+    |		{varAccess|a}.Fun2(3);
+    |	}
+    |}
+    :
+7. find pattern:"classDef" [PASS 2]
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    :               :
+
+    |tokens
+    |----------
+    |{classDef|public class A}
+    |{
+    |    public {typeName|float} function(  {varDecl|{typeName|int} a},
+    |                                       {varDecl|{typeName|float} b}
+    |    ){
+    |        return {varAccess|a} + {varAccess|b};
+    |    }
+    |
+    |    public {typeName|void} Func2({varDecl|{typeName|int} a}){
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    |{typeName|int} main(){
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit{varDecl{typeName|float} f} =} 3.1415*i;
+    |	if({varAccess|f} <= 7){
+    |		{varAccess|a}.function({varAccess|i}++,{varAccess|f});
+    |	}
+    |	else if({varAccess|f} >= {varAccess|i} << 3 + 1)
+    |	{
+    |		{varAccess|a}.Fun2(3);
+    |	}
+    |}
+    :
+8. find pattern:"funcDecl"; construct funcDecl typeNameList
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    |function       :
+    |main
+    |Func2
+    ：
+
+    |tokens
+    |----------
+    {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      {
+    |        return {varAccess|a} + {varAccess|b};
+    |    }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        return;
+    |    }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit{varDecl{typeName|float} f} =} 3.1415*i;
+    |	if({varAccess|f} <= 7){
+    |		{varAccess|a}.function({varAccess|i}++,{varAccess|f});
+    |	}
+    |	else if({varAccess|f} >= {varAccess|i} << 3 + 1)
+    |	{
+    |		{varAccess|a}.Fun2(3);
+    |	}
+    |}
+    :
+9. replace identifiers with typenames [PASS 2]
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    |function       :
+    |main
+    |Func2
+    ：
+
+    |tokens
+    |----------
+    {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    |        return {varAccess|a} + {varAccess|b};
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        return;
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit{varDecl{typeName|float} f} =} 3.1415*i;
+    |	if({varAccess|f} <= 7){
+    |		{varAccess|a}.{typeName|function}({varAccess|i}++,{varAccess|f});
+    |	}
+    |	else if({varAccess|f} >= {varAccess|i} << 3 + 1)
+    |	{
+    |		{varAccess|a}.{typeName|Fun2}(3);
+    |	}
+    |}
+    :
+10. construct operator from punctuators
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    |function       :
+    |main
+    |Func2
+    ：
+
+    |tokens
+    |----------
+    {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    |        {operator return} {varAccess|a} {operator +} {varAccess|b};
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        {operator return};
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    |   {varDecl|{typeName|A} a};
+    |		{varDeclInit{varDecl|{typeName|int} i} =} 0;
+    |		{varDeclInit{varDecl{typeName|float} f} =} 3.1415{operator *}{varAccess|i};
+    |	if({varAccess|f} {operator <=} 7){
+    |		{varAccess|a}{operator .}{typeName|function}({varAccess|i}{operator ++},{varAccess|f});
+    |	}
+    |	else if({varAccess|f} {operator >=} {varAccess|i} {operator <<} 3 {operator +} 1)
+    |	{
+    |		{varAccess|a}{operator .}{typeName|Fun2}(3);
+    |	}
+    |}
+    :
+11. find pattern:"expr"
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    |function       :
+    |main
+    |Func2
+    ：
+
+    |tokens
+    |----------
+    {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{operator return}
+        |       |       |-->{expr|{varAccess|a}}
+        |       |   }
+        |       |-->{operator +}
+        |   }
+        |-->{expr|{varAccess|b}}
+    }
+    |;
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        {operator return};
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    {varDecl|{typeName|A} a};
+    {varDeclInit{varDecl|{typeName|int} i} =} {expr|0};
+    {varDeclInit{varDecl{typeName|float} f} =}
+    {expr|
+        |-->{expr|
+        |       |-->{expr|3.1415}
+        |       |-->{operator *}
+        |   }
+        |-->{expr|{varAccess|i}}
+    }
+    |;
+    |	if(
+    {expr|
+        |-->{expr|{varAccess|f}}
+        |-->{expr|
+        |       |-->{operator <=}
+        |       |-->{expr|7}
+        |   }
+    }
+    |){	
+    {expr|
+        |-->{expr|{varAccess|a}}
+        |-->{operator .}
+    }
+    {typeName|function}(
+    {expr|
+        |-->{expr|{varAccess|i}}
+        |-->{operator ++}
+    }
+    |,
+    {expr|{varAccess|f}}
+    |);
+    |	}
+    |	else if(
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->{operator >=}
+        |       |   }
+        |       |-->{expr|{varAccess|i}}
+        |   }
+        |-->{expr|
+        |       |-->{expr| 
+        |       |       |-->{expr|
+        |       |       |       |-->{operator <<} 
+        |       |       |       |-->{expr|3}}
+        |       |       |   }
+        |       |       |-->{operator +} 
+        |       |   }
+        |       |-->{expr|1}
+        |   }
+    }
+    |)
+    |	{
+    {expr|
+        |-->{expr|{varAccess|a}}
+        |-->{operator .}
+    }
+    |{typeName|Fun2}({expr|3});
+    |	}
+    |}
+    :
+12. find pattern:"funcCall";if found a pattern, goto 11
+    |typeNamelist   |varNameList
+    |----------     |----------
+    |int            |null
+    |float          |a
+    |void           |b
+    |object         |i
+    |A              |f
+    |function       :
+    |main
+    |Func2
+    ：
+
+    |tokens
+    |----------
+    {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{operator return}
+        |       |       |-->{expr|{varAccess|a}}
+        |       |   }
+        |       |-->{operator +}
+        |   }
+        |-->{expr|{varAccess|b}}
+    }
+    |;
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        {operator return};
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    {varDecl|{typeName|A} a};
+    {varDeclInit{varDecl|{typeName|int} i} =} {expr|0};
+    {varDeclInit{varDecl{typeName|float} f} =}
+    {expr|
+        |-->{expr|
+        |       |-->{expr|3.1415}
+        |       |-->{operator *}
+        |   }
+        |-->{expr|{varAccess|i}}
+    }
+    |;
+    |	if(
+    {expr|
+        |-->{expr|{varAccess|f}}
+        |-->{expr|
+        |       |-->{operator <=}
+        |       |-->{expr|7}
+        |   }
+    }
+    |){	
+    {expr|
+        |-->{expr|{varAccess|a}}
+        |-->{operator .}
+    }
+    {funcCall|
+        |-->{funcCallBegin|
+        |       |-->{funcCallBegin|
+        |       |       |-->{typeName|function}
+        |       |       |-->(
+        |       |   }
+        |       |-->{expr|
+        |       |       |-->{expr|{varAccess|i}}
+        |       |       |-->{operator ++}
+        |       |   }
+        |       |-->,
+        |   }
+        |-->{expr|{varAccess|f}}
+        |-->)
+    }
+    |;
+    |	}
+    |	else if(
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->{operator >=}
+        |       |   }
+        |       |-->{expr|{varAccess|i}}
+        |   }
+        |-->{expr|
+        |       |-->{expr| 
+        |       |       |-->{expr|
+        |       |       |       |-->{operator <<} 
+        |       |       |       |-->{expr|3}}
+        |       |       |   }
+        |       |       |-->{operator +} 
+        |       |   }
+        |       |-->{expr|1}
+        |   }
+    }
+    |)
+    |	{
+    {expr|
+        |-->{expr|{varAccess|a}}
+        |-->{operator .}
+    }
+    {funcCall|
+        |-->{funcCallBegin|
+        |       |-->{typeName|Fun2}
+        |       |-->(
+        |   }
+        |-->{expr|3}
+        |-->)
+    }
+    |;
+    |	}
+    |}
+    :
+
+    |PASS 2(funcCall pattern found, goto finding pattern"expr")
+    |----------
+     {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{operator return}
+        |       |       |-->{expr|{varAccess|a}}
+        |       |   }
+        |       |-->{operator +}
+        |   }
+        |-->{expr|{varAccess|b}}
+    }
+    |;
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        {operator return};
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    {varDecl|{typeName|A} a};
+    {varDeclInit{varDecl|{typeName|int} i} =} {expr|0};
+    {varDeclInit{varDecl{typeName|float} f} =}
+    {expr|
+        |-->{expr|
+        |       |-->{expr|3.1415}
+        |       |-->{operator *}
+        |   }
+        |-->{expr|{varAccess|i}}
+    }
+    |;
+    |	if(
+    {expr|
+        |-->{expr|{varAccess|f}}
+        |-->{expr|
+        |       |-->{operator <=}
+        |       |-->{expr|7}
+        |   }
+    }
+    |){	
+    {expr|
+        |-->{expr|
+        |       |-->{expr|{varAccess|a}}
+        |       |-->{operator .}
+        |   }
+        |-->{expr|
+        |       |-->{funcCall|
+        |       |       |-->{funcCallBegin|
+        |       |       |       |-->{funcCallBegin|
+        |       |       |       |       |-->{typeName|function}
+        |       |       |       |       |-->(
+        |       |       |       |   }
+        |       |       |       |-->{expr|
+        |       |       |       |       |-->{expr|{varAccess|i}}
+        |       |       |       |       |-->{operator ++}
+        |       |       |       |   }
+        |       |       |       |-->,
+        |       |       |   }
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->)
+        |       |   }
+        |   }
+    }
+    |;
+    |	}
+    |	else if(
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->{operator >=}
+        |       |   }
+        |       |-->{expr|{varAccess|i}}
+        |   }
+        |-->{expr|
+        |       |-->{expr| 
+        |       |       |-->{expr|
+        |       |       |       |-->{operator <<} 
+        |       |       |       |-->{expr|3}}
+        |       |       |   }
+        |       |       |-->{operator +} 
+        |       |   }
+        |       |-->{expr|1}
+        |   }
+    }
+    |)
+    |	{
+    {expr|
+        |-->{expr|
+        |       |-->{expr|{varAccess|a}}
+        |       |-->{operator .}
+        |   }
+        |-->{expr|
+        |       |-->{funcCall|
+        |       |       |-->{funcCallBegin|
+        |       |       |       |-->{typeName|Fun2}
+        |       |       |       |-->(
+        |       |       |   }
+        |       |       |-->{expr|3}
+        |       |       |-->)
+        |       |   }
+        |   }
+    }
+    |;
+    |	}
+    |}
+    :
+
+    |PASS 3(pattern"funcCall" not found skipped)
+    |----------
+13. find pattern:"varDecl" [PASS 2]
+ {classDef|public class A}
+    |{
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |      |-->{funcDeclBegin|
+        |      |      |-->{funcDeclBegin|
+        |      |      |       |-->{typeName|float} 
+        |      |      |       |-->function
+        |      |      |       |-->(
+        |      |      |   }
+        |      |      |-->{varDecl|
+        |      |      |       |-->{typeName|int}
+        |      |      |       |-->a
+        |      |      |-->}
+        |      |      |-->,
+        |      |   }
+        |      |-->{varDecl|
+        |      |       {typeName|float}
+        |      |       b
+        |      |   }
+        |      |-->)
+        |___}
+    }      
+    |   {
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{operator return}
+        |       |       |-->{expr|{varAccess|a}}
+        |       |   }
+        |       |-->{operator +}
+        |   }
+        |-->{expr|{varAccess|b}}
+    }
+    |;
+    |   }
+    {funcDecl|
+        |-->public 
+        |-->{funcDecl|
+        |       |-->{funcDeclBegin|
+        |       |       |-->{typeName|void}
+        |       |       |-->Func2
+        |       |       |-->(
+        |       |   }
+        |       |-->{varDecl|
+        |       |       |-->{typeName|int}
+        |       |       |-->a
+        |       |   }
+        |       |-->)
+        |___}
+    }
+    |   {
+    |        {operator return};
+    |   }
+    |
+    |}
+    |
+    |
+    {funcDecl|
+        |-->{funcDeclBegin|
+        |       |-->{typeName|int}
+        |       |-->main
+        |       |-->(
+        |   }
+        |-->)
+    }
+    |{
+    {varDecl|{typeName|A} a};
+    {varDecl|
+        |-->{varDeclInit{varDecl|{typeName|int} i} =}
+        |-->{expr|0};
+    }
+    {varDecl|
+        |-->{varDeclInit{varDecl{typeName|float} f} =}
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{expr|3.1415}
+        |       |       |-->{operator *}
+        |       |   }
+        |       |-->{expr|{varAccess|i}}
+        |   }
+    }
+    |;
+    |	if(
+    {expr|
+        |-->{expr|{varAccess|f}}
+        |-->{expr|
+        |       |-->{operator <=}
+        |       |-->{expr|7}
+        |   }
+    }
+    |){	
+    {expr|
+        |-->{expr|
+        |       |-->{expr|{varAccess|a}}
+        |       |-->{operator .}
+        |   }
+        |-->{expr|
+        |       |-->{funcCall|
+        |       |       |-->{funcCallBegin|
+        |       |       |       |-->{funcCallBegin|
+        |       |       |       |       |-->{typeName|function}
+        |       |       |       |       |-->(
+        |       |       |       |   }
+        |       |       |       |-->{expr|
+        |       |       |       |       |-->{expr|{varAccess|i}}
+        |       |       |       |       |-->{operator ++}
+        |       |       |       |   }
+        |       |       |       |-->,
+        |       |       |   }
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->)
+        |       |   }
+        |   }
+    }
+    |;
+    |	}
+    |	else if(
+    {expr|
+        |-->{expr|
+        |       |-->{expr|
+        |       |       |-->{expr|{varAccess|f}}
+        |       |       |-->{operator >=}
+        |       |   }
+        |       |-->{expr|{varAccess|i}}
+        |   }
+        |-->{expr|
+        |       |-->{expr| 
+        |       |       |-->{expr|
+        |       |       |       |-->{operator <<} 
+        |       |       |       |-->{expr|3}}
+        |       |       |   }
+        |       |       |-->{operator +} 
+        |       |   }
+        |       |-->{expr|1}
+        |   }
+    }
+    |)
+    |	{
+    {expr|
+        |-->{expr|
+        |       |-->{expr|{varAccess|a}}
+        |       |-->{operator .}
+        |   }
+        |-->{expr|
+        |       |-->{funcCall|
+        |       |       |-->{funcCallBegin|
+        |       |       |       |-->{typeName|Fun2}
+        |       |       |       |-->(
+        |       |       |   }
+        |       |       |-->{expr|3}
+        |       |       |-->)
+        |       |   }
+        |   }
+    }
+    |;
+    |	}
+    |}
+    :
+
+   

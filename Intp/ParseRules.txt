@@ -1,0 +1,169 @@
+/*Parse order
+			1. resolve dependencies
+			2. find pattern:"classDef"; construct classDef typeNameList
+			3. replace identifiers with typenames
+			4. find pattern:"typename"
+			5. find pattern:"varDecl"; construct varNameList
+            6. replace identifiers with varAccess
+			7. find pattern:"classDef" [PASS 2]
+			8. find pattern:"funcDecl"; construct funcDecl typeNameList
+			9. replace identifiers with typenames [PASS 2]
+			10. construct operator from punctuators
+			11. find pattern:"expr"
+			12. find pattern:"funcCall";if found a pattern, goto 11
+			13. find pattern:"varDecl" [PASS 2]
+		*/
+		/*Code structure
+			expr:varAccess
+				|funcCall
+				|fconst
+				|iconst
+				|string
+				|operator + expr
+				|expr + operator
+				|expr + expr
+				:
+			
+			classDef:->tempClassDefBegin:keyword"class" + identifier + punctuator"<"
+					|					|tempClassDefBegin + varDecl + punctuator","
+					|					:
+					|tempClassDefBegin + varDecl + punctuator">"
+					|keyword"class" + identifier
+					|keyword(modifier) + classDef
+					|classDef + punctuator":" + keyword(modifier) + typeName
+					:
+			
+			typeName:identifier in typeNameList
+					|->tempTypeBegin:typeName + punctuator"<"
+					|				|tempTypeBegin + typename + punctuator","
+					|				|tempTypeBegin + fconst + punctuator","
+					|				|tempTypeBegin + iconst + punctuator","
+					|				|tempTypeBegin + string + punctuator","
+					|				:
+					|tempTypeBegin + typename + punctuator">"
+					|typeName + punctuator":" + typeName
+					:
+
+		funcDecl:->funcDeclBegin:->tempFuncDeclBegin:typename + identifier + punctuator"<"
+				|				|					|tempFuncDeclBegin + typeName + identifier + punctuator","
+				|				|					:
+				|				|tempFuncDeclBegin + typeName + identifier + punctuator">" + punctuator"("
+				|				|funcDeclBegin + typeName + identifier + punctuator","
+				|				|typeName + identifier + punctuator"("
+				|				:
+				|funcDeclBegin + punctuator")"
+				|funcDeclBegin + typeName + identifier + punctuator")"
+				|keyword(modifier) + funcDecl
+				
+
+			funcCall:->funcCallBegin:typeName + punctuator"("
+					|				|funcCallBegin + expr + punctuator","
+					|				:
+					|funcCallBegin + expr + punctuator")"
+					|funcCallBegin + funcCall + punctuator")"
+					|funcCallBegin + punctuator")"
+					:
+
+			varDecl	:typeName + identifier
+					|keyword(modifier) + varDecl
+					|->varDeclInit	:varDecl + punctuator"="
+					|				:
+					|varDeclInit + expr
+					:
+
+			varAccess	:identifier in varNameList
+						:
+		*/
+
+-[OLD]
+2. find pattern:"classDef"; construct classDef typeNameList
+3. replace identifiers with typenames
+4. find pattern:"typename"
+8. find pattern:"funcDecl"; construct funcDecl typeNameList
+7. find pattern:"classDef" [PASS 2, ensure template args are handled]
+5. find pattern:"varDecl"; construct varNameList
+6. replace identifiers with varAccess
+
+(Might be done by previous step)9. replace identifiers with typenames [PASS 2, due to funcDecl names]
+10. construct operator from punctuators
+11. find pattern:"expr"
+12. find pattern:"funcCall";if found a pattern, goto 11
+13. find pattern:"varDecl" [PASS 2, complete varDeclInit case]
+
+
+-[NEW] -[TODO:"&", "[", "]", if, else, switch, enum, for foreach, is, as, typeof]
+2. find pattern:"classDef"; construct classDef typeNameList
+mark template"<" ">"and funcCall parenthesis, make assumptions (e.g. template funcCall parenthesis and typenames)
+    funcCall : identifier + "("     + ... + ")"  - "{"
+               funcCall     LFUNC           RFUNC
+    template funcCall : keyword"template" + identifier + "<"   + ... + ">"   + "("   + ... + ")"
+                                -           funcCall     LTEMP         RTEMP   LFUNC         RFUNC
+    template typename : keyword"template" + identifier + "<"   + ... + ">"   - "("
+                                -           typeName     LTEMP         RTEMP
+    funcDecl : identifier + "("     + ... + ")"  + "{"
+               funcDecl     LFUNC          RFUNC
+    template funcDecl : identifier + "<"   + ">"   + "("     + ... + ")"     + "{"
+                        funcDecl     LTEMP    RTEMP  LFUNC           RFUNC
+3. replace identifiers with typenames
+[--------All declared typeNames marked--------]
+fold name space access":"
+    typeName : .. + ":" + identifier + identifier
+                          typeName
+    pattern rule:
+        [identifier,":",identifier] => identifier
+        [typeName,":",identifier] => identifier
+        [identifier,":",typeName] => typeName
+        [identifier,":",funcCall] => funcCall
+[--------All nested typeNames processed--------]
+reconstruct operators
+
+recursion
+    find pattern "expr"
+    find pattern "arrayAccess", if found goto recursion
+        rule:   ["["] => arrayAccessBegin
+                [arrayAccessBegin + expr + ","] => arrayAccessBegin
+                [arrayAccessBegin + expr + "]"] => arrayAccess
+[--------All arrayAccess processed--------]
+
+find pattern "arrayVarAccess"
+    rule: [identifier + arrayAccess] => identifier
+
+recursion 2
+    recursion 1
+        find pattern "expr"(rule:include [identifier])
+[--------All identifier replaced--------]
+        find pattern "template",if found goto recursion 1
+            rule:   [LTEMP"<" + expr] => tempInstBegin
+                    [tempInstBegin + "," + expr] => tempInstBegin
+                    [tempInstBegin + RTEMP">"] => tempInst
+    find pattern "typeName", if found goto recursion 2
+[--------All template typeNames processed--------]
+find pattern "classDef"
+find pattern "funcDecl"
+
+recursion
+    find pattern "expr"
+    find pattern "funcCall", if found goto recursion
+[--------All funcCalls and exprs processed--------]
+
+recursion
+    find pattern "expr"
+    find pattern "varDecl", if found goto recursion
+        rule:   [typeName + expr] => varDecl
+                [varDecl + "," + expr] => varDecl
+                [typeName + "&"] => typeName
+                [typeName + "["] => varArrayTypeBegin
+                [varArrayTypeBegin + expr + ","] => varArrayTypeBegin
+                [varArrayTypeBegin + expr + "]"] => typeName
+
+
+classDef:->tempClassDefBegin:keyword"class" + identifier + punctuator"<"
+		|					|tempClassDefBegin + typeName + identifier + punctuator","
+		|					:
+		|tempClassDefBegin + typeName + identifier + punctuator">"
+		|keyword"class" + identifier
+		|keyword(modifier) + classDef
+		|->inhClassDef  :classDef + punctuator":" + keyword(modifier) + typeName
+        |               |inhClassDef + punctuator"," + keyword(modifier) + typeName
+        |               :
+		:

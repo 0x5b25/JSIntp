@@ -1,0 +1,124 @@
+//TODO:Macro(def)
+//Keywords:
+//  Code structure  :var func def inst using class 
+//  Flow control    :if else condition return loop continue break
+//  Accessibility   :public virtual override static
+//  Variable modify :ref 
+//Operators:
+//  Arthimetic  :+ - * / += -= *= /=
+//  Variable    := new delete
+//  Logical     :&&(and) ||(or) !(not) > < == <= >= !=
+//  HashTableAccess :[]
+//  table access:.
+//  Parser Function:#
+//  [No bitwise operation]
+//Built in types:
+//  null object(any) int float string bool
+
+/*Object model:
+Object
+  |->HashTable:Attributes that are dynamically added during runtime
+  |    |->"key":value(values can only be anonymous variable and function)
+  |    |__
+  |->MetaTable:Object prototype definition
+  |    |->class id and inheritance chain info
+  |    |->variables and functions declared in class declaration
+  |    |->operation information
+  |    |->literal Accessibility(boolean, integer, float, string, object reference)
+  |    |__
+  |__
+
+stack:
+  ..   ..
+  |    |__
+  |->Object
+  |    |->literal access
+  |    |    |->variable type info
+  |    |    |->literal value
+  |    |    |__
+  |    |->Metatable pointer
+  |    |->HashTable pointer
+  |    |__
+  |->..
+  ..
+
+all objects are references except the "static" ones:ones whose literal access is not "this" pointer
+*/
+class BaseClass{
+    var number:float;
+    public var someString:string;
+    virtual var id:int;
+
+    public virtual func SomeFunc(){
+        return "Some random function";
+    }
+
+    public func Speak(){
+        console.log(id,"",someString,SomeFunc());
+    }
+}
+
+class MyClass : BaseClass{
+    override var id:int = #scope_name;
+    override func SomeFunc(){
+        return "This is a inherited class";
+    }
+}
+
+//Function is also a object, which can be represented by variables
+//Function arguments are stored in object's hashtable
+func GetInc(i:int){
+    //variable accessor will use variables in metatable first
+    return func(n){
+        //if a variable being accessed only presents in parent's hashtable, it will be copied to local hashtable
+        return i += n;
+        //in this case, variable"i" will be copied to this anonymous func's hashtable
+    }
+}
+
+var MyVar;//Equals to "var MyVar:any","var MyVar:object"
+
+//variables that stores self defined types that dont override literal values are references(their literal value is "this" pointer)
+//the true value stored in pile is actually a MetaTable to store prototype structure and a HashTable to store dynamic info
+var MyObj:MyClass = new MyClass();
+var MyRef:BaseClass = MyClass;
+
+//punctuation":" is used to initialize variable, using typename means invoking that type's default literal constructor
+var MyIntArray:int = {1,2,3,4};//all arrays are dynamic and are actually hashtables
+//variables declared not using keyword "var" are stored in hashtable
+
+func function1( i , j){
+    if(i > 50){
+        GetInc(i)(-50);
+    }else{
+        GetInc(50);
+    }
+    return i + j;
+}
+//[] used as an indexer to find a value to the key
+MyVar = function1(MyIntArray[0],MyIntArray[3]);
+
+//"." works similarly as "[]",but "." will search through prototype info(metatable) first while "[]" takes hashtables as a piority
+MyRef.NewString = "some random string 1"
+MyRef[NewString] = "some random string 2"//These two have the same effect as new attributes can't be added to prototypes
+//"NewString":"some random string" is being added to hashtable
+
+console.log(MyRef.NewString);
+console.log(MyRef[NewString]);//Both prints "some random string 2" because there is only one attribute "NewString"
+
+console.log(MyRef.someString);
+console.log(MyRef[someString]);//Both prints "null" because there is only one attribute "someString" and is initialized by null
+
+MyRef.someString = "some other random string 1"//the value "someString" in prototype is being set
+MyRef[someString] = "some other random string 2"//"someString":"some other random string2" is being added to hashtable
+
+console.log(MyRef.someString);//prints "some other random string 1",the attribute in prototype
+console.log(MyRef[someString]);//prints "some other random string 2",the attribute in hashtable
+
+MyRef.someString = null;// attributes in prototype cant be removed,hence attribute "someString" in prototype is set to null
+MyRef[someString] = null;//attribute "someString" in hashtable is removed
+
+MyRef.NewString = null;
+MyRef[someString] = null;//Both deletes the only attribute "NewString" in MyRef
+
+delete MyRef;//both MyObj and MyRef are set to null because when a object is deleted,all the references refer to that object are set to null 

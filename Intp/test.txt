@@ -1,0 +1,75 @@
+
+class BaseClass{
+    var number:float;
+    public var someString:string;
+    virtual var id:int;
+
+    public virtual func SomeFunc(){
+        return "Some random function";
+    }
+
+    public func Speak(){
+        console.log(id,"",someString,SomeFunc());
+    }
+}
+
+class MyClass : BaseClass{
+    override var id:int = #scope_name;
+    override func SomeFunc(){
+        return "This is a inherited class";
+    }
+}
+
+
+func GetInc(i:int){
+    
+    return func(n){
+        
+        return i += n;
+        
+    }
+}
+
+var MyVar;
+
+
+var MyObj:MyClass = new MyClass();
+var MyRef:BaseClass = MyClass;
+
+var MyIntArray:int = {1,2,3,4};
+
+
+func function1( i , j){
+    if(i > 50){
+        GetInc(i)(-50);
+    }else{
+        GetInc(50);
+    }
+    return i + j;
+}
+
+MyVar = function1(MyIntArray[0],MyIntArray[3]);
+
+
+MyRef.NewString = "some random string 1";
+MyRef[NewString] = "some random string 2";
+
+console.log(MyRef.NewString);
+console.log(MyRef[NewString]);
+
+console.log(MyRef.someString);
+console.log(MyRef[someString]);
+
+MyRef.someString = "some other random string 1";
+MyRef[someString] = "some other random string 2";
+
+console.log(MyRef.someString);
+console.log(MyRef[someString]);
+
+MyRef.someString = null;
+MyRef[someString] = null;
+
+MyRef.NewString = null;
+MyRef[someString] = null;
+
+delete MyRef;
